@@ -80,6 +80,7 @@ Parser::program()
 void
 Parser::function()
 {
+	// Verifica tipo de retorno (void ou tipos básicos)
 	if (lToken->name == VOID)
 		advance();
 	else
@@ -89,6 +90,8 @@ Parser::function()
 	match(LEFT_PARENTHESE);
 	paramTypes();
 	match(RIGHT_PARENTHESE);
+
+	// Início do corpo da função
 	match(LEFT_BRACE);
 
 	while (lToken->name == CHAR || lToken->name == INT)
