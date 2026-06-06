@@ -8,10 +8,16 @@ class Parser
 		SymbolTable* globalST;
     	SymbolTable* currentST;
 
+		// VARIÁVEIS PARA O MODO PÂNICO:
+		bool hasErrors;
+		int lastErrorLine;
+		int linhaAnterior;
+
 		void advance();
 		void match(int);
 		void error(string);
 		void initSimbolTable();
+		void synchronize();
 
 		void program();
 		void function();

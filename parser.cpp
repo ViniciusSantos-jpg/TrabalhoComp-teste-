@@ -6,58 +6,68 @@ Parser::Parser(string input)
 	initSimbolTable();
 
 	scanner = new Scanner(input, globalST);
+
+	// INICIALIZANDO VARIÁVEIS DE ERRO:
+	hasErrors = false;
+	lastErrorLine = 0;
+	linhaAnterior = 1;
 }
 
 void
 Parser::advance()
 {
+	linhaAnterior = scanner->getLine(); // Salva a linha antes de avançar
 	lToken = scanner->nextToken();
 }
 
 void
 Parser::match(int t)
 {
-	if (lToken->name == t || lToken->attribute == t)
+	if (lToken->name == t || lToken->attribute == t) {
 		advance();
-	else
-		error("Erro inesperado");
+	} else {
+		// O match agora sabe o que faltou
+		if (t == SEMICOLON) error("esperado ';'");
+		else if (t == RIGHT_PARENTHESE) error("esperado ')'");
+		else if (t == LEFT_BRACE) error("esperado '{'");
+		else if (t == RIGHT_BRACE) error("esperado '}'");
+		else if (t == ASSIGNMENT) error("esperado '='");
+		else if (t == ID) error("esperado identificador");
+		else error("sintaxe invalida");
+		
+		synchronize(); // Aciona o modo pânico
+	}
+}
+
+void 
+Parser::synchronize()
+{
+    while (lToken->name != END_OF_FILE) {
+        // Para se encontrar um fechamento ou ponto e vírgula
+        if (lToken->attribute == SEMICOLON || lToken->attribute == RIGHT_BRACE || lToken->attribute == LEFT_BRACE) {
+            return;
+        }
+        
+        // Para se encontrar palavra que inicia novo bloco
+        if (lToken->name == INT || lToken->name == CHAR || lToken->name == VOID || 
+            lToken->name == IF || lToken->name == WHILE || lToken->name == FOR || lToken->name == RETURN) {
+            return;
+        }
+        advance(); // Descarta token problemático
+    }
 }
 
 void
 Parser::run()
 {
 	advance();	
-
 	program();
-	//TESTE DA TABELA DE SÍMBOLOS
-	/*
-    currentST = new SymbolTable(currentST);
-	currentST = new SymbolTable(currentST);
-    if (currentST->add(new STEntry(new Token(ID), "bianca")))
-		cout << "Adição de bianca deu certo" << endl;
-	else
-		cout << "Adição de bianca não deu certo" << endl;
 
-	STEntry* obj = currentST->get("bianca");
-
-	if (obj)
-		cout << "Encontrei o símbolo " << obj->lexeme << endl;
-	else
-		cout << "Não encontrei o símbolo buscado" << endl;
-
-	//Fim do escopo
-	currentST = currentST->getParent();
-
-	obj = currentST->get("bianca");
-
-	if (obj)
-		cout << "Encontrei o símbolo " << obj->lexeme << endl;
-	else
-		cout << "Não encontrei o símbolo buscado" << endl;*/
-
-	/////////////////////////////
-
-	cout << "Compilação encerrada com sucesso!\n";
+	if (!hasErrors) {
+		cout << "Compilação encerrada com sucesso!\n";
+	} else {
+		cout << "\nCompilação encerrada com erros estruturais. Verifique as mensagens acima.\n";
+	}
 }
 
 void
@@ -238,7 +248,10 @@ Parser::statement()
 		advance();
 	}
 	else
+	{
 		error("statement inválido");
+		advance(); // EVITA LOOP INFINITO
+	}
 }
 
 void
@@ -316,7 +329,11 @@ Parser::term()
 		}
 	}
 	else
+	{
 		error("expressão inválida");
+		advance();     // EVITA LOOP INFINITO
+		synchronize(); // RECUPERA DO ERRO
+	}
 }
 
 void
@@ -342,10 +359,21 @@ Parser::initSimbolTable()
     globalST->add(new STEntry(t, true));
 }
 
-void
+void 
 Parser::error(string str)
 {
-	cout << "Linha " << scanner->getLine() << ": " << str << endl;
-
-	exit(EXIT_FAILURE);
+    int linhaDoErro = scanner->getLine();
+    
+    // Se o erro for a falta de um ponto e vírgula, o erro real foi na linha de cima!
+    if (str == "esperado ';'") {
+        linhaDoErro = linhaAnterior;
+    }
+    
+    // Só imprime se o erro for numa linha diferente
+    if (linhaDoErro != lastErrorLine) {
+        cout << "Linha " << linhaDoErro << ": erro: " << str << endl;
+        lastErrorLine = linhaDoErro; // Atualiza a última linha que deu erro
+    }
+    
+    hasErrors = true; // Marca que o programa tem erros
 }

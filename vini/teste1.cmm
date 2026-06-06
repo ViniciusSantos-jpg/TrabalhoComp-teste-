@@ -1,0 +1,9 @@
+void main(void) {
+    int a, b;
+    a = 0;
+    b = 10;
+    
+    while(a < b) {
+        a = a + 1;
+    }
+}

@@ -1,0 +1,14 @@
+void testando_for(void) {
+    int i;
+    
+    // Erro sintático: faltando parênteses no for
+    for i = 0; i < 10; i = i + 1 {
+        if (i == 5)
+            return;
+    }
+    
+    // Erro sintático: if sem parênteses
+    if i > 5 {
+        i = 0;
+    }
+}
