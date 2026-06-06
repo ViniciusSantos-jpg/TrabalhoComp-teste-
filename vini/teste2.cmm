@@ -1,8 +1,0 @@
-int soma(int x, int y) {
-    int resultado;
-    
-    // Erro lexico (@) e erro sintatico (falta ponto e virgula)
-    resultado = x + y @
-    
-    return resultado;
-}

@@ -1,9 +1,0 @@
-void main(void) {
-    int int;    // Erro: tentando usar 'int' como variável
-    int char;   // Erro: tentando usar 'char' como variável
-    int for;    // Erro: tentando usar 'for' como variável
-    int while;  // Erro: tentando usar 'while' como variável
-    
-    int x;
-    x = 1;
-}
